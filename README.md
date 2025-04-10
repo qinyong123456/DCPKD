@@ -66,6 +66,9 @@ We **PROMISE** to release the full code and configuration files in the future.
 
 If you have any questions about our DPC model, you can submit an issue on GitHub or contact me by email (haoyang.li-3@student.uts.edu.au).
 
+## Poster
+<div style="text-align:center"><img src="docs/DPC_Poster.png" width="100%" ></div>
+
 ## Citation
 
 If you find our paper or repo helpful for your research, please consider citing our paper and giving this repo a star⭐. Thank you!
