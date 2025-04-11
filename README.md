@@ -57,9 +57,47 @@ For plug-and-play characteristic, we compare DPC with [DePT](https://github.com/
 
 ## Running
 
-We are still in the process of organizing the code repository. 
+### Preliminary
 
-We **PROMISE** to release the full code and configuration files in the future.
+(**Acknowledgement**: This part is modified from [PromptKD](https://github.com/zhengli97/PromptKD/tree/main)'s official repository.)
+
+1. Create the environment and install Dassl.pytorch library. Please follow the instructions detailed in [INSTALL.md](https://github.com/JREion/DPC/blob/main/docs/INSTALL.md). 
+2. Download publicly released pre-trained teacher ViT-L/14 CLIP models of PromptKD.<br>
+   Files are publicly available at [[Baidu Yun](https://pan.baidu.com/s/1KNJ1mhNKoxdSli4ZldeZUg?pwd=mjf4)] [[TeraBox](https://terabox.com/s/1X4mxJtSaR8W2lrK5bsrCkg)] [[Google Drive](https://drive.google.com/drive/folders/1OdQ9WauZmYAzVSUTTw7tIKKChyECIS5B?usp=sharing)]<br>
+   (Note that due to cloud space limitations, we only provide a limited number of models in Google Cloud. Sorry.)<br>
+   After obtaining the teacher model, unzip these files and place the model in the `./teacher_model` folder.
+3. Download the original ViT-B/16 and ViT-L/14 CLIP model weights from the official OpenAI website. Then place these models in the `./clip` folder.<br>
+   [[ViT-B/16 CLIP](https://openaipublic.azureedge.net/clip/models/5806e77cd80f8b59890b7e101eabd078d9fb84e6937f9e85e4ecb61988df416f/ViT-B-16.pt)] [[ViT-L/14 CLIP](https://openaipublic.azureedge.net/clip/models/b8cca3fd41ae0c99ba7e8951adf17d267cdb84cd88be6f7c2e0eca1737a03836/ViT-L-14.pt)]
+4. Download the zip file of DPC-specific annotation files: [[Google Drive](https://drive.google.com/file/d/1kMManryXLEYB6rMoeBwHiDzgmE4X_Lbz/view?usp=sharing)] [[Baidu Yun](https://pan.baidu.com/s/1LKU0g7H9o14GnZ0aZ-QMuw?pwd=cvpr)]<br>
+   Then unzip and place these `SPLE_XXX.json` files in the `./DATA/SPLE_Database` folder.
+5. Prepare the dataset. Please follow the instructions detailed in [DATASETS.md](https://github.com/JREion/DPC/blob/main/docs/DATASETS.md).
+
+### Fine-tuning Process
+
+Since DPC is a plug-and-play model, DPC first uses the **original backbone model** (e.g., CoOp, PromptKD, ...) for the first stage of fine-tuning to get the tuned prompt. Then, in the second stage, fine-tuning based on the **DPC**-related trainer is performed to introduce and tune parallel prompt. 
+
+We will release scripts to automate this process in the future.
+
+Below, we take the base-to-new fine-tuning task of the DPC+PromptKD model on the StanfordCars dataset as an example (epoch=20, weight_for_base=0.2; weight_for_new=0.0):
+
+1. Execute fine-tuning on PromptKD backbone to get tuned prompt (and other activated parameters):
+
+   ```
+   python train.py  --root DATA/stanford_cars --seed 1 --trainer PromptKD --dataset-config-file configs/datasets/stanford_cars.yaml --config-file configs/trainers/PromptKD/vit_b16_c2_ep20_batch32_4+4ctx.yaml --output-dir output/PromptKD/base2new/train_base/stanford_cars/1_PromptKD_baseline/vit_b16_c2_ep20_batch32_4+4ctx/seed1 DATASET.NUM_SHOTS 0  TRAINER.MODAL base2novel TRAINER.PROMPTKD.TEMPERATURE 1.0 TRAINER.PROMPTKD.KD_WEIGHT 1000.0 TEST.SPLIT val
+   ```
+
+2. Based on the PromptKD backbone, continue to fine-tune by **DPC** on base classes:
+
+   ```
+   python train.py  --root DATA/stanford_cars --seed 1 --trainer StackSPLE_PromptKD --dataset-config-file configs/datasets/stanford_cars.yaml --config-file configs/trainers/SPLE/PromptKD/vit_b16_c2_ep20_batch4_4+4ctx.yaml --output-dir output/PromptKD/base2new/train_base/stanford_cars/3_SPLE_converse/vit_b16_c2_ep20_batch4_4+4ctx_con20/seed1 DATASET.NUM_SHOTS 16 SPLE.BACK_CKPT_PATH output/PromptKD/base2new/train_base/stanford_cars/1_PromptKD_baseline/vit_b16_c2_ep20_batch32_4+4ctx/seed1 SPLE.BACK_CKPT_EPOCH 20 SPLE.PIC_LIB DATA/SPLE_database/SPLE_StanfordCars.json SPLE.STACK.MODE converse SPLE.STACK.WEIGHT 0.2 DATASET.SUBSAMPLE_CLASSES base SPLE.STACK.WEIGHT_FOR_NEW 0.0 TRAINER.MODAL base2novel TRAINER.PROMPTKD.TEMPERATURE 1.0 TRAINER.PROMPTKD.KD_WEIGHT 1000.0 TEST.SPLIT val
+   ```
+
+3. Test the new-class generalization of **DPC**:
+
+   ```
+   python train.py  --root DATA/stanford_cars --seed 1 --trainer StackSPLE_PromptKD --dataset-config-file configs/datasets/stanford_cars.yaml --config-file configs/trainers/SPLE/PromptKD/vit_b16_c2_ep20_batch4_4+4ctx.yaml --output-dir output/PromptKD/base2new/train_base/stanford_cars/3_SPLE_converse/vit_b16_c2_ep20_batch4_4+4ctx_con20/seed1 DATASET.NUM_SHOTS 16 SPLE.BACK_CKPT_PATH output/PromptKD/base2new/train_base/stanford_cars/1_PromptKD_baseline/vit_b16_c2_ep20_batch32_4+4ctx/seed1 SPLE.BACK_CKPT_EPOCH 20 SPLE.PIC_LIB DATA/SPLE_database/SPLE_StanfordCars.json SPLE.STACK.MODE converse SPLE.STACK.WEIGHT 0.2 DATASET.SUBSAMPLE_CLASSES new SPLE.STACK.WEIGHT_FOR_NEW 0.0 TRAINER.MODAL base2novel TRAINER.PROMPTKD.TEMPERATURE 1.0 TRAINER.PROMPTKD.KD_WEIGHT 1000.0 TEST.SPLIT test
+   ```
+
 
 
 ## Contact
