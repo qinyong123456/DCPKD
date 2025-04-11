@@ -30,6 +30,7 @@ from dassl.utils import read_image
 
 import sys
 from dassl.config import get_cfg_default
+import re
 
 _tokenizer = _Tokenizer()
 
