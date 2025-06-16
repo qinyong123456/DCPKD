@@ -114,10 +114,11 @@ If you have any questions about our DPC model, you can submit an issue on GitHub
 If you find our paper or repo helpful for your research, please consider citing our paper and giving this repo a star⭐. Thank you!
 
 ```
-@article{li2025dpc,
-  title={DPC: Dual-Prompt Collaboration for Tuning Vision-Language Models},
+@inproceedings{li2025dpc,
+  title={Dpc: Dual-prompt collaboration for tuning vision-language models},
   author={Li, Haoyang and Wang, Liang and Wang, Chao and Jiang, Jing and Peng, Yan and Long, Guodong},
-  journal={arXiv preprint arXiv:2503.13443},
+  booktitle={Proceedings of the Computer Vision and Pattern Recognition Conference},
+  pages={25623--25632},
   year={2025}
 }
 ```
