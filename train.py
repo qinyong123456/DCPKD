@@ -33,8 +33,8 @@ import trainers.promptkd
 import trainers.sple_promptkd  # PromptKD+DPC
 import trainers.promptkd_infer  # Real-time inference head for PromptKD+DPC
 
-import trainers.coop_stats
-import trainers.promptsrc_stats
+# import trainers.coop_stats
+# import trainers.promptsrc_stats
 
 
 def print_args(args, cfg):
