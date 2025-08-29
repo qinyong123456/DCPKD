@@ -422,19 +422,20 @@ class VisionTransformer(nn.Module):
     def load_promptsrc_prompt_vector(self, design_details):
         # Load model.pth.tar-[epoch]
         upper_path = design_details["backbone_path"]
-        ckpt_epoch = design_details["backbone_epoch"]
-        model_path = upper_path + "/VLPromptLearner/model.pth.tar-" + str(ckpt_epoch)  # Path of PromptSRC
-        # Init
-        txt_prompts_depth = design_details["language_depth"]  # Depth of PromptSRC text prompt (DEFAULT: 9)
-        vis_prompts_depth = design_details["vision_depth"]  # Depth of PromptSRC visual prompt (DEFAULT: 9)
-        prompt_learner = torch.load(model_path, map_location="cuda")["state_dict"]  # Load weights
-        txt_prompts_list = []
-        vis_prompts_list = []
-
-        # Extract 0-th text prompt: prompt_learner.ctx
-        ctx_txt = prompt_learner["prompt_learner.ctx"]
-        # Extract 0-th visual prompt: image_encoder.VPT
-        ctx_vpt = prompt_learner["image_encoder.VPT"]
+        if upper_path != "" and design_details["trainer"] == "PromptSRC":
+            ckpt_epoch = design_details["backbone_epoch"]
+            model_path = upper_path + "/VLPromptLearner/model.pth.tar-" + str(ckpt_epoch)  # Path of PromptSRC
+            # Init
+            txt_prompts_depth = design_details["language_depth"]  # Depth of PromptSRC text prompt (DEFAULT: 9)
+            vis_prompts_depth = design_details["vision_depth"]  # Depth of PromptSRC visual prompt (DEFAULT: 9)
+            prompt_learner = torch.load(model_path, map_location="cuda")["state_dict"]  # Load weights
+            txt_prompts_list = []
+            vis_prompts_list = []
+        else:
+            # Extract 0-th text prompt: prompt_learner.ctx
+            ctx_txt = prompt_learner["prompt_learner.ctx"]
+            # Extract 0-th visual prompt: image_encoder.VPT
+            ctx_vpt = prompt_learner["image_encoder.VPT"]
 
         # Extract a list of text prompts (1-8 Layer)
         for layer_id in range(1, txt_prompts_depth):
