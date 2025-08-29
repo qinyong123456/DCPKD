@@ -431,14 +431,22 @@ class VisionTransformer(nn.Module):
             prompt_learner = torch.load(model_path, map_location="cuda")["state_dict"]  # Load weights
             txt_prompts_list = []
             vis_prompts_list = []
-        else:
+        
             # Extract 0-th text prompt: prompt_learner.ctx
             ctx_txt = prompt_learner["prompt_learner.ctx"]
             # Extract 0-th visual prompt: image_encoder.VPT
             ctx_vpt = prompt_learner["image_encoder.VPT"]
-
-
-        return ctx_txt, txt_prompts_list, ctx_vpt, vis_prompts_list
+            # Extract a list of text prompts (1-8 Layer)
+            for layer_id in range(1, txt_prompts_depth):
+                txt_prompts_list.append(
+                    prompt_learner["text_encoder.transformer.resblocks." + str(layer_id) + ".VPT_shallow"])
+            # Extract a list of visual prompts (1-8 Layer)
+            for layer_id in range(1, vis_prompts_depth):
+                vis_prompts_list.append(
+                    prompt_learner["image_encoder.transformer.resblocks." + str(layer_id) + ".VPT_shallow"])
+     
+            return ctx_txt, txt_prompts_list, ctx_vpt, vis_prompts_list
+        else return return None, None, None, None
 
     def forward(self, x: torch.Tensor):
         # [SPLE] Return VPT in CONVERSE mode
