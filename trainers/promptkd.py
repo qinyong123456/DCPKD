@@ -89,7 +89,8 @@ def load_clip_to_cpu(cfg, zero_shot_model=False):
                       "vision_depth": cfg.TRAINER.PROMPTKD.PROMPT_DEPTH_VISION,
                       "language_depth": cfg.TRAINER.PROMPTKD.PROMPT_DEPTH_TEXT,
                       "vision_ctx": cfg.TRAINER.PROMPTKD.N_CTX_VISION,
-                      "language_ctx": cfg.TRAINER.PROMPTKD.N_CTX_TEXT}
+                      "language_ctx": cfg.TRAINER.PROMPTKD.N_CTX_TEXT,
+                      "backbone_path": ""}
     model = clip.build_model(state_dict or model.state_dict(), design_details)
 
     return model
