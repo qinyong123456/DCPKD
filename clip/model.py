@@ -437,14 +437,6 @@ class VisionTransformer(nn.Module):
             # Extract 0-th visual prompt: image_encoder.VPT
             ctx_vpt = prompt_learner["image_encoder.VPT"]
 
-        # Extract a list of text prompts (1-8 Layer)
-        for layer_id in range(1, txt_prompts_depth):
-            txt_prompts_list.append(
-                prompt_learner["text_encoder.transformer.resblocks." + str(layer_id) + ".VPT_shallow"])
-        # Extract a list of visual prompts (1-8 Layer)
-        for layer_id in range(1, vis_prompts_depth):
-            vis_prompts_list.append(
-                prompt_learner["image_encoder.transformer.resblocks." + str(layer_id) + ".VPT_shallow"])
 
         return ctx_txt, txt_prompts_list, ctx_vpt, vis_prompts_list
 
