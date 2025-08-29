@@ -446,7 +446,8 @@ class VisionTransformer(nn.Module):
                     prompt_learner["image_encoder.transformer.resblocks." + str(layer_id) + ".VPT_shallow"])
      
             return ctx_txt, txt_prompts_list, ctx_vpt, vis_prompts_list
-        else return return None, None, None, None
+        else:
+            return return None, None, None, None
 
     def forward(self, x: torch.Tensor):
         # [SPLE] Return VPT in CONVERSE mode
